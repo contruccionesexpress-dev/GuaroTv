@@ -1,6 +1,6 @@
 {
-  "installCommand": "npx --yes pnpm@10.26.1 install --no-frozen-lockfile",
-  "buildCommand": "npx --yes pnpm@10.26.1 --filter @workspace/el-guaro-tv run build",
+  "installCommand": "cd artifacts/el-guaro-tv && npm install",
+  "buildCommand": "cd artifacts/el-guaro-tv && npm run build",
   "outputDirectory": "artifacts/el-guaro-tv/dist/public",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
