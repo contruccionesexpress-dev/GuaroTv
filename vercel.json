@@ -1,0 +1,8 @@
+{
+  "buildCommand": "pnpm --filter @workspace/el-guaro-tv run build",
+  "outputDirectory": "artifacts/el-guaro-tv/dist/public",
+  "installCommand": "pnpm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
