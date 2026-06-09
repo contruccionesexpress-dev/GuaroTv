@@ -71,7 +71,9 @@ export default function App() {
   const [adminTrack, setAdminTrack] = useState("");
   const [adminCountry, setAdminCountry] = useState<"VEN" | "USA">("VEN");
   const [adminDate, setAdminDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [adminLink, setAdminLink] = useState("");
+  const [adminPdfFile, setAdminPdfFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [dlModal, setDlModal] = useState(false);
   const [dlTitle, setDlTitle] = useState("");
@@ -168,11 +170,17 @@ export default function App() {
       triggerNotification("Campos Vacíos", "Rellena los datos requeridos.", "❌", true);
       return;
     }
-    const newList = [{ id: Date.now(), title: adminTitle.trim(), track: adminTrack.trim(), country: adminCountry, date: adminDate, link: adminLink.trim() || "#" }, ...gacetas];
+    if (!adminPdfFile) {
+      triggerNotification("Sin archivo", "Selecciona un PDF antes de publicar.", "❌", true);
+      return;
+    }
+    const blobUrl = URL.createObjectURL(adminPdfFile);
+    const newList = [{ id: Date.now(), title: adminTitle.trim(), track: adminTrack.trim(), country: adminCountry, date: adminDate, link: blobUrl }, ...gacetas];
     setGacetas(newList);
     localStorage.setItem("elguaro_gacetas", JSON.stringify(newList));
-    setAdminTitle(""); setAdminTrack(""); setAdminLink("");
-    triggerNotification("Documento Indexado", "La revista ya está disponible para el público.", "📁");
+    setAdminTitle(""); setAdminTrack(""); setAdminPdfFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    triggerNotification("Documento Publicado", `"${adminPdfFile.name}" ya está disponible para descarga.`, "📁");
   };
 
   const startDownload = (pdf: Gaceta) => {
@@ -558,9 +566,56 @@ export default function App() {
               {/* PUBLICADOR DE GACETAS */}
               <div className="bg-black p-4 rounded-xl border border-red-950 space-y-3">
                 <h3 className="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center justify-between border-b border-red-950 pb-1.5">
-                  <span>Cargar Revista PDF</span>
+                  <span>Subir Revista PDF</span>
                   <i className="fa-solid fa-file-pdf text-red-500"></i>
                 </h3>
+
+                {/* ZONA DE CARGA */}
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={e => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.type === "application/pdf") {
+                      setAdminPdfFile(file);
+                      if (!adminTitle) setAdminTitle(file.name.replace(".pdf", ""));
+                    } else {
+                      triggerNotification("Formato inválido", "Solo se aceptan archivos PDF.", "❌", true);
+                    }
+                  }}
+                  className={`cursor-pointer border-2 border-dashed rounded-xl p-4 text-center transition-all ${isDragOver ? "border-amber-400 bg-amber-500/10" : adminPdfFile ? "border-emerald-500 bg-emerald-500/10" : "border-red-900/60 hover:border-red-600 bg-neutral-900/50"}`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    className="hidden"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setAdminPdfFile(file);
+                        if (!adminTitle) setAdminTitle(file.name.replace(".pdf", ""));
+                      }
+                    }}
+                  />
+                  {adminPdfFile ? (
+                    <div className="space-y-1">
+                      <i className="fa-solid fa-file-pdf text-2xl text-emerald-400"></i>
+                      <p className="text-[11px] font-bold text-emerald-400 truncate">{adminPdfFile.name}</p>
+                      <p className="text-[9px] text-slate-500">{(adminPdfFile.size / 1024).toFixed(0)} KB — clic para cambiar</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <i className="fa-solid fa-cloud-arrow-up text-2xl text-red-700"></i>
+                      <p className="text-[11px] font-bold text-slate-300">Arrastra el PDF aquí</p>
+                      <p className="text-[9px] text-slate-500">o haz clic para buscar en tus documentos</p>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="text-[9px] text-slate-400 block mb-0.5">Título del Folleto</label>
                   <input
@@ -596,19 +651,11 @@ export default function App() {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="text-[9px] text-slate-400 block mb-0.5">Enlace de Descarga Directa</label>
-                  <input
-                    type="text" value={adminLink} onChange={e => setAdminLink(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full bg-neutral-900 border border-red-950 rounded p-1.5 text-xs text-white"
-                  />
-                </div>
                 <button
                   onClick={uploadGaceta}
-                  className="w-full bg-emerald-700 hover:bg-emerald-600 border border-emerald-500 text-white font-bold text-xs py-2 rounded-lg transition-all"
+                  className="w-full bg-emerald-700 hover:bg-emerald-600 border border-emerald-500 text-white font-bold text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-2"
                 >
-                  Publicar Gaceta al Instante
+                  <i className="fa-solid fa-upload"></i> Publicar Gaceta al Instante
                 </button>
               </div>
             </div>
