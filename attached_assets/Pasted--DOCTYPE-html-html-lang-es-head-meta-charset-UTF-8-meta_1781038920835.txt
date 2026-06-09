@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TurfStream Pro - El Guaro VIP</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .brand-title {
+            font-family: 'Cinzel', serif;
+        }
+        .stream-viewport {
+            overflow: hidden;
+            position: relative;
+            background-color: #050505;
+        }
+        .stream-video-element {
+            position: absolute;
+            transform-origin: center center;
+            transition: transform 0.1s ease;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f0505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #991b1b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d97706;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0202] text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- NOTIFICACIONES -->
+    <div id="toastNotification" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300 ease-in-out bg-emerald-700 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center space-x-3 max-w-sm border border-amber-500/30">
+        <span class="text-2xl" id="toastIcon">🛡️</span>
+        <div>
+            <h4 class="font-bold text-sm text-amber-400" id="toastTitle">Notificación</h4>
+            <p class="text-xs text-slate-200" id="toastMessage">Acción ejecutada.</p>
+        </div>
+    </div>
+
+    <!-- CINTILLO OFICIAL DE BIENVENIDA "EL GUARO" (ROJO, VERDE Y DORADO) -->
+    <div id="guaroWelcomeHeader" class="hidden bg-gradient-to-r from-red-700 via-amber-500 to-emerald-700 text-white text-center py-2.5 px-4 font-black text-xs uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3 border-b-2 border-amber-400 animate-pulse">
+        <i class="fa-solid fa-crown text-amber-300"></i>
+        <span>Transmisión Oficial en Vivo de "EL GUARO" 🐎🔥 ¡Señal Premium Activa!</span>
+        <i class="fa-solid fa-crown text-amber-300"></i>
+    </div>
+
+    <!-- CABECERA PRINCIPAL -->
+    <header class="bg-gradient-to-r from-black via-red-950 to-black border-b-2 border-amber-500/60 px-4 py-3 sticky top-0 z-40 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Logo e Identidad -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-amber-500 via-red-600 to-emerald-600 p-2.5 rounded-xl shadow-lg shadow-red-900/40 border border-amber-400">
+                    <i class="fa-solid fa-horse-head text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-500 brand-title">
+                        EL GUARO TV
+                    </h1>
+                    <p class="text-[10px] text-emerald-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                        <span>● MULTICANAL HÍPICO MULTI-STREAM</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Selector de Roles -->
+            <div id="roleSelectorContainer" class="flex items-center gap-2 bg-black/60 p-1.5 rounded-xl border border-red-900/40">
+                <button onclick="changeRole('viewer')" id="btnRoleViewer" class="px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center space-x-2 bg-emerald-700 text-white border border-emerald-500 shadow-md">
+                    <i class="fa-solid fa-tv"></i>
+                    <span>Espectador</span>
+                </button>
+                <button onclick="changeRole('admin')" id="btnRoleAdmin" class="px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center space-x-2 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-gears"></i>
+                    <span>Admin</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- IZQUIERDA: TRANSMISIONES -->
+        <section id="streamingArea" class="lg:col-span-8 flex flex-col space-y-4">
+            
+            <!-- SELECTOR DE CANALES (Estilo Dorado y Rojo) -->
+            <div class="bg-gradient-to-b from-red-950 to-black p-3 rounded-2xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
+                    <i class="fa-solid fa-play text-red-500"></i> SELECCIÓN DE SEÑAL:
+                </span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="setActiveChannel(1)" id="btnChan1" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-emerald-700 text-white border border-emerald-500 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Canal 1 (Nacional)
+                    </button>
+                    <button onclick="setActiveChannel(2)" id="btnChan2" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-black/40 text-slate-300 border border-red-900/40 hover:border-amber-500 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-slate-600"></span> Canal 2 (USA)
+                    </button>
+                    <button onclick="setActiveChannel(3)" id="btnChan3" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-black/40 text-slate-300 border border-red-900/40 hover:border-amber-500 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-slate-600"></span> Canal 3 (Internacional)
+                    </button>
+                    <button onclick="setMultiviewMode()" id="btnMultiview" class="px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-black/40 text-slate-300 border border-red-900/40 hover:border-amber-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-table-cells-large text-amber-400"></i> Múltiple
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DE PANTALLAS -->
+            <div id="gridStreamsContainer" class="grid grid-cols-1 gap-4">
+                
+                <!-- CANAL 1 PLAYER -->
+                <div id="wrapperChannel1" class="bg-black rounded-2xl border-2 border-amber-500/40 overflow-hidden shadow-2xl relative flex flex-col">
+                    <div class="bg-gradient-to-r from-red-950 via-black to-red-950 px-4 py-2 border-b border-amber-500/20 flex items-center justify-between text-xs">
+                        <span class="text-amber-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-circle text-[8px] text-red-500 animate-ping"></i> TRANSMISIÓN DESTACADA: EN VIVO
+                        </span>
+                        <span id="recordingStatus1" class="hidden text-red-500 font-bold animate-pulse flex items-center gap-1">
+                            <i class="fa-solid fa-circle-dot"></i> GRABANDO...
+                        </span>
+                    </div>
+
+                    <!-- Stream Viewport 1 -->
+                    <div class="relative bg-neutral-950 flex items-center justify-center h-[420px]">
+                        <div id="viewport1" class="stream-viewport w-full h-full flex items-center justify-center">
+                            <!-- Imagen Realista de Fondo / Video simulado de carreras -->
+                            <video id="videoElement1" class="stream-video-element w-full h-full object-cover" autoplay loop muted playsinline>
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-horse-racing-on-a-sunny-day-40291-large.mp4" type="video/mp4">
+                            </video>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"></div>
+                            <!-- Sello de Agua Exclusivo -->
+                            <div class="absolute top-3 left-3 bg-red-950/80 text-[10px] text-amber-400 px-3 py-1 rounded-md border border-amber-500/40 font-bold tracking-wider">
+                                <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> ESCUDO DE EMISIÓN ACTIVO
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controles de captura (Solo Admin) -->
+                    <div class="bg-neutral-900 p-3 border-t border-amber-500/20 flex items-center justify-between flex-wrap gap-2 admin-only hidden">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="startSourceCapture(1)" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all border border-emerald-500">
+                                <i class="fa-solid fa-desktop"></i> Capturar Pantalla de Carreras
+                            </button>
+                            <button onclick="toggleRecording(1)" id="btnRecord1" class="bg-red-700 hover:bg-red-600 text-white font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all border border-red-500">
+                                <i class="fa-solid fa-circle-dot"></i> Grabar Carrera
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CANAL 2 PLAYER -->
+                <div id="wrapperChannel2" class="bg-black rounded-2xl border-2 border-amber-500/40 overflow-hidden shadow-2xl relative flex flex-col hidden">
+                    <div class="bg-gradient-to-r from-red-950 via-black to-red-950 px-4 py-2 border-b border-amber-500/20 flex items-center justify-between text-xs">
+                        <span class="text-amber-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-circle text-[8px] text-red-500 animate-ping"></i> SEÑAL INTERNACIONAL 2
+                        </span>
+                        <span id="recordingStatus2" class="hidden text-red-500 font-bold animate-pulse flex items-center gap-1">
+                            <i class="fa-solid fa-circle-dot"></i> GRABANDO...
+                        </span>
+                    </div>
+
+                    <!-- Stream Viewport 2 -->
+                    <div class="relative bg-neutral-950 flex items-center justify-center h-[420px]">
+                        <div id="viewport2" class="stream-viewport w-full h-full flex items-center justify-center">
+                            <video id="videoElement2" class="stream-video-element w-full h-full object-cover" autoplay loop muted playsinline>
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-running-race-horses-side-view-40289-large.mp4" type="video/mp4">
+                            </video>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"></div>
+                            <div class="absolute top-3 left-3 bg-red-950/80 text-[10px] text-amber-400 px-3 py-1 rounded-md border border-amber-500/40 font-bold">
+                                SEÑAL RESPALDO HD
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-neutral-900 p-3 border-t border-amber-500/20 flex items-center justify-between flex-wrap gap-2 admin-only hidden">
+                        <button onclick="startSourceCapture(2)" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all border border-emerald-500">
+                            <i class="fa-solid fa-desktop"></i> Capturar Señal 2
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CANAL 3 PLAYER -->
+                <div id="wrapperChannel3" class="bg-black rounded-2xl border-2 border-amber-500/40 overflow-hidden shadow-2xl relative flex flex-col hidden">
+                    <div class="bg-gradient-to-r from-red-950 via-black to-red-950 px-4 py-2 border-b border-amber-500/20 flex items-center justify-between text-xs">
+                        <span class="text-amber-400 font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-circle text-[8px] text-red-500 animate-ping"></i> SEÑAL INTERNACIONAL 3
+                        </span>
+                        <span id="recordingStatus3" class="hidden text-red-500 font-bold animate-pulse flex items-center gap-1">
+                            <i class="fa-solid fa-circle-dot"></i> GRABANDO...
+                        </span>
+                    </div>
+
+                    <!-- Stream Viewport 3 -->
+                    <div class="relative bg-neutral-950 flex items-center justify-center h-[420px]">
+                        <div id="viewport3" class="stream-viewport w-full h-full flex items-center justify-center">
+                            <video id="videoElement3" class="stream-video-element w-full h-full object-cover" autoplay loop muted playsinline>
+                                <source src="https://assets.mixkit.co/videos/preview/mixkit-horse-jumping-obstacles-41584-large.mp4" type="video/mp4">
+                            </video>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CHAT EN DIRECTO (Estilo Elegante) -->
+            <div class="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border border-red-900/40 p-4 flex flex-col space-y-3 shadow-xl">
+                <div class="flex items-center justify-between border-b border-red-950 pb-2">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-comments text-amber-400"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Chat de Suscriptores</h3>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">EN VIVO</span>
+                </div>
+                
+                <div id="chatBox" class="h-28 overflow-y-auto space-y-2.5 text-xs pr-1">
+                    <div class="flex items-start space-x-2">
+                        <span class="bg-emerald-950 text-emerald-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-emerald-500/20">VIP</span>
+                        <strong class="text-amber-400">Carlos_Hipico:</strong>
+                        <span class="text-slate-300">¡Qué buena calidad se ve la señal hoy, Guaro! Arrasando.</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <span class="bg-red-950 text-red-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-red-500/20">FIJO 🐎</span>
+                        <strong class="text-red-400">El_Guaro_Informa:</strong>
+                        <span class="text-amber-200 font-semibold">¡Atentos que ya subí las revistas autorizadas abajo para descarga gratuita!</span>
+                    </div>
+                </div>
+
+                <form id="chatForm" onsubmit="postChatMessage(event)" class="flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Envía un mensaje al grupo..." class="flex-grow bg-black text-xs text-slate-200 border border-red-950 rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500 placeholder-neutral-600">
+                    <button type="submit" class="bg-red-700 hover:bg-red-600 border border-red-500 text-white px-5 rounded-xl font-bold text-xs flex items-center justify-center transition-all">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+
+        </section>
+
+        <!-- DERECHA: ENLACES / HERRAMIENTAS / GACETAS -->
+        <section class="lg:col-span-4 flex flex-col space-y-6">
+
+            <!-- PANEL COMPARTIR (ROJO Y DORADO) -->
+            <div id="shareLinkContainer" class="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border border-amber-500/30 p-5 shadow-2xl space-y-4">
+                <div class="border-b border-red-950 pb-2.5 flex items-center space-x-2">
+                    <div class="bg-amber-500/10 text-amber-400 p-2 rounded-lg border border-amber-500/20 text-lg">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">ENLACE PARA EL GRUPO</h2>
+                        <p class="text-[10px] text-slate-400">Tus clientes entrarán como espectadores directos</p>
+                    </div>
+                </div>
+
+                <div class="bg-black p-3 rounded-xl border border-red-950 space-y-3">
+                    <span class="text-[9px] font-bold text-red-400 uppercase block tracking-wider">ENLACE COMPATIBLE (COPIA ESTE AL SUBIR A REPLIT):</span>
+                    <div class="flex items-center justify-between bg-neutral-950 border border-red-950 p-2 rounded-lg">
+                        <code id="realLinkDisplay" class="text-[11px] text-slate-300 overflow-x-auto whitespace-nowrap pr-2 font-mono">Generando url al iniciar en Replit...</code>
+                        <button onclick="copyGeneratedLink('real')" class="bg-emerald-700 hover:bg-emerald-600 text-white p-2 rounded-md text-xs transition-all flex items-center justify-center border border-emerald-500">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-relaxed bg-red-950/10 p-3 rounded-lg border border-red-900/20">
+                    ✨ **Acceso blindado:** Al pulsar este link, se activa de forma automática el bloqueo del panel de control. Tus clientes solo verán el reproductor y el chat.
+                </p>
+            </div>
+
+            <!-- SECCIÓN ADMIN CONTROLES -->
+            <div id="adminControlsArea" class="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border-2 border-red-700 p-5 shadow-2xl space-y-5 hidden">
+                <div class="border-b border-red-950 pb-2.5">
+                    <h2 class="text-xs font-black uppercase tracking-wider text-red-500 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-400"></i>
+                        <span>ESCUDO ANTI-NOTIFICACIONES</span>
+                    </h2>
+                    <p class="text-[10px] text-slate-400 mt-1">Esconde alertas de WhatsApp o barras de herramientas recortando los bordes.</p>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-amber-400 block font-bold mb-1">SELECCIONA SEÑAL A RECORTAR:</label>
+                    <select id="selectedChannelToAdjust" onchange="loadAdjustmentsForSelectedChannel()" class="w-full bg-black border border-red-950 rounded-lg p-2 text-xs text-slate-200 focus:border-amber-400">
+                        <option value="1">Canal 1 (Señal Principal)</option>
+                        <option value="2">Canal 2 (Señal Secundaria)</option>
+                        <option value="3">Canal 3 (Señal Respaldo)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-4 pt-2">
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs text-slate-300">
+                            <span>Corte Superior (Ocultar Notificaciones)</span>
+                            <span id="lblCropTop" class="font-bold text-red-500">30px</span>
+                        </div>
+                        <input type="range" id="rngCropTop" min="0" max="150" value="30" oninput="updateCropAdjustments()" class="w-full accent-red-600 bg-black h-1 rounded">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs text-slate-300">
+                            <span>Ajuste de Enfoque (Zoom)</span>
+                            <span id="lblZoom" class="font-bold text-emerald-400">110%</span>
+                        </div>
+                        <input type="range" id="rngZoom" min="100" max="300" value="110" oninput="updateCropAdjustments()" class="w-full accent-emerald-500 bg-black h-1 rounded">
+                    </div>
+                </div>
+
+                <!-- PUBLICADOR DE GACETAS -->
+                <div class="bg-black p-4 rounded-xl border border-red-950 space-y-3">
+                    <h3 class="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center justify-between border-b border-red-950 pb-1.5">
+                        <span>Cargar Revista PDF</span>
+                        <i class="fa-solid fa-file-pdf text-red-500"></i>
+                    </h3>
+                    <div>
+                        <label class="text-[9px] text-slate-400 block mb-0.5">Título del Folleto</label>
+                        <input type="text" id="adminPdfTitle" placeholder="Ej: Gaceta Hípica Sabatina" class="w-full bg-neutral-900 border border-red-950 rounded p-1.5 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-slate-400 block mb-0.5">Hipódromo / Reunión</label>
+                        <input type="text" id="adminPdfTrack" placeholder="Ej: La Rinconada" class="w-full bg-neutral-900 border border-red-950 rounded p-1.5 text-xs text-white">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[9px] text-slate-400 block mb-0.5">Procedencia</label>
+                            <select id="adminPdfCountry" class="w-full bg-neutral-900 border border-red-950 rounded p-1.5 text-xs text-white">
+                                <option value="VEN">Venezuela 🇻🇪</option>
+                                <option value="USA">EE. UU. 🇺🇸</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[9px] text-slate-400 block mb-0.5">Fecha</label>
+                            <input type="date" id="adminPdfDate" class="w-full bg-neutral-900 border border-red-950 rounded p-1.5 text-xs text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-slate-400 block mb-0.5">Enlace de Descarga Directa</label>
+                        <input type="text" id="adminPdfLink" placeholder="https://..." class="w-full bg-neutral-900 border border-red-950 rounded p-1.5 text-xs text-white">
+                    </div>
+                    <button onclick="uploadGaceta()" class="w-full bg-emerald-700 hover:bg-emerald-600 border border-emerald-500 text-white font-bold text-xs py-2 rounded-lg transition-all">
+                        Publicar Gaceta al Instante
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN DESCARGAS ESPECTADOR -->
+            <div class="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border border-amber-500/30 p-5 shadow-2xl space-y-4">
+                <div class="border-b border-red-950 pb-3 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">REVISTAS Y PROGRAMAS GRATIS</h2>
+                        <p class="text-[10px] text-slate-400">Haz clic para descargar las gacetas oficiales</p>
+                    </div>
+                    <span class="text-xl text-red-500"><i class="fa-solid fa-book-open"></i></span>
+                </div>
+
+                <!-- Filtros -->
+                <div class="flex space-x-2 bg-black p-1 rounded-xl border border-red-950">
+                    <button onclick="filterPdfs('ALL')" id="btnFilter_ALL" class="flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all bg-red-700 text-white">Todas</button>
+                    <button onclick="filterPdfs('VEN')" id="btnFilter_VEN" class="flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all text-slate-400 hover:text-white">Nacionales 🇻🇪</button>
+                    <button onclick="filterPdfs('USA')" id="btnFilter_USA" class="flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all text-slate-400 hover:text-white">USA 🇺🇸</button>
+                </div>
+
+                <div id="gacetasContainer" class="space-y-3 max-h-[260px] overflow-y-auto">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="bg-black border-t-2 border-amber-400 py-4 px-4 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between text-xs text-neutral-500 gap-2">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-crown text-amber-500"></i>
+                <p>© 2026 El Guaro TV. Sistema Exclusivo de Distribución Hípica Protegida.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL DESCARGA -->
+    <div id="modalDownload" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-neutral-900 border-2 border-amber-500/50 rounded-2xl max-w-sm w-full p-5 space-y-4 text-center shadow-2xl">
+            <div class="w-12 h-12 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl border border-red-500/20">
+                <i class="fa-solid fa-circle-notch animate-spin text-amber-400"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-white" id="dlTitle">Procesando Descarga</h3>
+                <p class="text-[11px] text-slate-400 mt-1" id="dlSubtitle">Preparando documento hípico...</p>
+            </div>
+            <div class="space-y-1">
+                <div class="flex justify-between text-[10px] text-amber-400 font-bold">
+                    <span>Descargando...</span>
+                    <span id="dlPercent">0%</span>
+                </div>
+                <div class="w-full bg-black h-2 rounded-full overflow-hidden border border-red-950">
+                    <div id="dlBar" class="bg-gradient-to-r from-red-600 to-amber-400 h-full w-0 transition-all duration-100"></div>
+                </div>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeDlModal()" class="flex-grow bg-black hover:bg-neutral-900 border border-red-950 text-xs text-slate-300 py-2 rounded-xl transition-all">Cerrar</button>
+                <a id="dlActionBtn" href="#" target="_blank" class="flex-grow bg-emerald-700 hover:bg-emerald-600 text-xs text-white py-2 rounded-xl font-bold transition-all border border-emerald-500 flex items-center justify-center gap-1 hidden">
+                    <i class="fa-solid fa-file-open"></i> Ver PDF
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        let activeRole = 'viewer';
+        let currentActiveChannel = 1;
+        let currentFilter = 'ALL';
+        let mediaRecorders = { 1: null, 2: null, 3: null };
+        let recordedChunks = { 1: [], 2: [], 3: [] };
+        let streamSources = { 1: null, 2: null, 3: null };
+
+        let channelAdjustments = {
+            1: { cropTop: 30, cropBottom: 0, zoom: 110, offsetX: 0 },
+            2: { cropTop: 0, cropBottom: 0, zoom: 100, offsetX: 0 },
+            3: { cropTop: 0, cropBottom: 0, zoom: 100, offsetX: 0 }
+        };
+
+        let listGacetas = [
+            { id: 1, title: "Gaceta Hípica Oficial", track: "La Rinconada", country: "VEN", date: "2026-06-14", link: "https://www.desafiohipico.com/retrospectos" },
+            { id: 2, title: "Línea del Éxito", track: "Valencia", country: "VEN", date: "2026-06-13", link: "https://www.desafiohipico.com/retrospectos" },
+            { id: 3, title: "Daily Racing Form", track: "Gulfstream Park", country: "USA", date: "2026-06-14", link: "https://grtv.us/" }
+        ];
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isGuaroRoom = urlParams.get('sala') === 'elguaro' || window.location.hash === '#elguaro';
+
+            if (isGuaroRoom) {
+                changeRole('viewer');
+                document.getElementById('roleSelectorContainer').style.display = 'none';
+                document.getElementById('guaroWelcomeHeader').classList.remove('hidden');
+                triggerNotification("Conexión VIP", "Bienvenido a la señal premium de El Guaro.", "👑");
+            } else {
+                changeRole('viewer');
+            }
+
+            // Capturar la URL real de publicación (Replit la inyecta automáticamente aquí)
+            const currentUrl = window.location.href.split('?')[0].split('#')[0];
+            document.getElementById('realLinkDisplay').innerText = `${currentUrl}?sala=elguaro`;
+
+            const stored = localStorage.getItem('elguaro_gacetas');
+            if (stored) listGacetas = JSON.parse(stored);
+            
+            renderGacetas();
+            applyAllChannelAdjustments();
+            document.getElementById('adminPdfDate').value = new Date().toISOString().split('T')[0];
+        };
+
+        function copyGeneratedLink(type) {
+            const textToCopy = document.getElementById('realLinkDisplay').innerText;
+            const tempInput = document.createElement("input");
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            
+            try {
+                document.execCommand("copy");
+                triggerNotification("Enlace Copiado", "Listo para pegar en tu grupo hípico de WhatsApp.", "📋");
+            } catch (err) {
+                triggerNotification("Error al copiar", "Selecciónalo manualmente.", "❌", true);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function triggerNotification(title, message, icon = "🛡️", isAlert = false) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            document.getElementById('toastIcon').innerText = icon;
+
+            if (isAlert) {
+                toast.classList.remove('bg-emerald-700');
+                toast.classList.add('bg-red-700');
+            } else {
+                toast.classList.remove('bg-red-700');
+                toast.classList.add('bg-emerald-700');
+            }
+
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+        }
+
+        function changeRole(role) {
+            activeRole = role;
+            const btnViewer = document.getElementById('btnRoleViewer');
+            const btnAdmin = document.getElementById('btnRoleAdmin');
+            const adminArea = document.getElementById('adminControlsArea');
+            const adminButtons = document.querySelectorAll('.admin-only');
+
+            if (role === 'admin') {
+                btnAdmin.className = "px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center space-x-2 bg-amber-500 text-black border border-amber-400 font-black shadow-md";
+                btnViewer.className = "px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center space-x-2 text-slate-400 hover:text-white";
+                adminArea.classList.remove('hidden');
+                adminButtons.forEach(btn => btn.classList.remove('hidden'));
+                loadAdjustmentsForSelectedChannel();
+            } else {
+                btnViewer.className = "px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center space-x-2 bg-emerald-700 text-white border border-emerald-500 shadow-md";
+                btnAdmin.className = "px-4 py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center space-x-2 text-slate-400 hover:text-white";
+                adminArea.classList.add('hidden');
+                adminButtons.forEach(btn => btn.classList.add('hidden'));
+            }
+        }
+
+        function setActiveChannel(chan) {
+            currentActiveChannel = chan;
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`btnChan${i}`);
+                const wrapper = document.getElementById(`wrapperChannel${i}`);
+                if (i === chan) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-emerald-700 text-white border border-emerald-500 flex items-center gap-1.5";
+                    wrapper.classList.remove('hidden');
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-black/40 text-slate-300 border border-red-900/40 hover:border-amber-500 flex items-center gap-1.5";
+                    wrapper.classList.add('hidden');
+                }
+            }
+            document.getElementById('btnMultiview').className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-black/40 text-slate-300 border border-red-900/40 hover:border-amber-500 flex items-center gap-1.5";
+            document.getElementById('gridStreamsContainer').className = "grid grid-cols-1 gap-4";
+        }
+
+        function setMultiviewMode() {
+            currentActiveChannel = 'multiview';
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`btnChan${i}`).className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-black/40 text-slate-300 border border-red-900/40 flex items-center gap-1.5";
+                document.getElementById(`wrapperChannel${i}`).classList.remove('hidden');
+            }
+            document.getElementById('btnMultiview').className = "px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all bg-amber-500 text-black font-black border border-amber-400 flex items-center gap-1.5";
+            document.getElementById('gridStreamsContainer').className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+        }
+
+        function loadAdjustmentsForSelectedChannel() {
+            const chanId = document.getElementById('selectedChannelToAdjust').value;
+            const config = channelAdjustments[chanId];
+            document.getElementById('rngCropTop').value = config.cropTop;
+            document.getElementById('rngZoom').value = config.zoom;
+            updateLabelsAndUI();
+        }
+
+        function updateLabelsAndUI() {
+            const cropTop = document.getElementById('rngCropTop').value;
+            const zoom = document.getElementById('rngZoom').value;
+            document.getElementById('lblCropTop').innerText = cropTop + "px";
+            document.getElementById('lblZoom').innerText = zoom + "%";
+        }
+
+        function updateCropAdjustments() {
+            const chanId = document.getElementById('selectedChannelToAdjust').value;
+            const cropTop = parseInt(document.getElementById('rngCropTop').value);
+            const zoom = parseInt(document.getElementById('rngZoom').value);
+            channelAdjustments[chanId] = { cropTop, cropBottom: 0, zoom, offsetX: 0 };
+            applySingleChannelAdjustments(chanId);
+            updateLabelsAndUI();
+        }
+
+        function applySingleChannelAdjustments(chanId) {
+            const config = channelAdjustments[chanId];
+            const videoElement = document.getElementById(`videoElement${chanId}`);
+            const viewport = document.getElementById(`viewport${chanId}`);
+            if (!videoElement) return;
+            viewport.style.clipPath = `inset(${config.cropTop}px 0px 0px 0px)`;
+            videoElement.style.transform = `scale(${config.zoom / 100})`;
+        }
+
+        function applyAllChannelAdjustments() {
+            for (let i = 1; i <= 3; i++) applySingleChannelAdjustments(i);
+        }
+
+        async function startSourceCapture(channelId) {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: "always" },
+                    audio: true
+                });
+                const video = document.getElementById(`videoElement${channelId}`);
+                video.srcObject = stream;
+                video.play();
+                streamSources[channelId] = stream;
+                triggerNotification("Señal Transmitida", "Tu app externa se está retransmitiendo con éxito.", "📲");
+            } catch (err) {
+                triggerNotification("Captura cancelada", "No seleccionaste pantalla.", "❌", true);
+            }
+        }
+
+        function toggleRecording(channelId) {
+            const btn = document.getElementById(`btnRecord${channelId}`);
+            const statusIndicator = document.getElementById(`recordingStatus${channelId}`);
+
+            if (mediaRecorders[channelId] && mediaRecorders[channelId].state === "recording") {
+                mediaRecorders[channelId].stop();
+                btn.className = "bg-red-700 hover:bg-red-600 text-white font-bold text-xs px-3 py-2 rounded-lg transition-all border border-red-500";
+                btn.innerHTML = `<i class="fa-solid fa-circle-dot"></i> Grabar Carrera`;
+                statusIndicator.classList.add('hidden');
+                return;
+            }
+
+            let streamToRecord = streamSources[channelId];
+            if (!streamToRecord) {
+                const videoEl = document.getElementById(`videoElement${channelId}`);
+                streamToRecord = videoEl.captureStream ? videoEl.captureStream() : videoEl.mozCaptureStream();
+            }
+
+            recordedChunks[channelId] = [];
+            try {
+                const recorder = new MediaRecorder(streamToRecord, { mimeType: 'video/webm; codecs=vp9' });
+                recorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks[channelId].push(e.data); };
+                recorder.onstop = () => {
+                    const blob = new Blob(recordedChunks[channelId], { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `ElGuaro_Carrera_${Date.now()}.webm`;
+                    a.click();
+                    triggerNotification("Grabación Lista", "El archivo de la carrera se descargó de forma local.", "💾");
+                };
+                recorder.start();
+                mediaRecorders[channelId] = recorder;
+                btn.className = "bg-neutral-800 text-amber-400 font-bold text-xs px-3 py-2 rounded-lg transition-all animate-pulse border border-amber-500";
+                btn.innerHTML = `<i class="fa-solid fa-square"></i> Detener`;
+                statusIndicator.classList.remove('hidden');
+            } catch (err) {
+                triggerNotification("Error de Códec", "No soportado en este navegador.", "❌", true);
+            }
+        }
+
+        function renderGacetas() {
+            const container = document.getElementById('gacetasContainer');
+            container.innerHTML = '';
+            const filtered = listGacetas.filter(p => currentFilter === 'ALL' || p.country === currentFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-4 text-neutral-600 text-xs">No hay revistas disponibles.</div>`;
+                return;
+            }
+
+            filtered.forEach(pdf => {
+                const flag = pdf.country === 'VEN' ? '🇻🇪' : '🇺🇸';
+                const div = document.createElement('div');
+                div.className = "bg-black p-3 rounded-xl border border-red-950 flex items-center justify-between hover:border-amber-500/30 transition-all";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <div class="text-red-500 text-xl px-1"><i class="fa-solid fa-file-pdf"></i></div>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-200">${pdf.title}</h4>
+                            <p class="text-[10px] text-amber-500/80 font-medium">${pdf.track} ${flag} • 📅 ${pdf.date}</p>
+                        </div>
+                    </div>
+                    <button onclick="startDownloadSequence(${pdf.id})" class="bg-emerald-700 hover:bg-emerald-600 border border-emerald-500 text-white px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all">
+                        Bajar
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function filterPdfs(country) {
+            currentFilter = country;
+            ['ALL', 'VEN', 'USA'].forEach(type => {
+                document.getElementById(`btnFilter_${type}`).className = type === country ? 
+                    "flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all bg-red-700 text-white" : 
+                    "flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all text-slate-400 hover:text-white";
+            });
+            renderGacetas();
+        }
+
+        function uploadGaceta() {
+            const title = document.getElementById('adminPdfTitle').value.trim();
+            const track = document.getElementById('adminPdfTrack').value.trim();
+            const country = document.getElementById('adminPdfCountry').value;
+            const date = document.getElementById('adminPdfDate').value;
+            const link = document.getElementById('adminPdfLink').value.trim();
+
+            if (!title || !track || !date) {
+                triggerNotification("Campos Vacíos", "Rellena los datos requeridos.", "❌", true);
+                return;
+            }
+
+            listGacetas.unshift({ id: Date.now(), title, track, country, date, link: link || '#' });
+            localStorage.setItem('elguaro_gacetas', JSON.stringify(listGacetas));
+            
+            document.getElementById('adminPdfTitle').value = '';
+            document.getElementById('adminPdfTrack').value = '';
+            document.getElementById('adminPdfLink').value = '';
+            
+            renderGacetas();
+            triggerNotification("Documento Indexado", "La revista ya está disponible para el público.", "📁");
+        }
+
+        let downloadInterval = null;
+        function startDownloadSequence(id) {
+            const pdf = listGacetas.find(p => p.id === id);
+            if (!pdf) return;
+
+            const modal = document.getElementById('modalDownload');
+            const actionBtn = document.getElementById('dlActionBtn');
+            const bar = document.getElementById('dlBar');
+            const percent = document.getElementById('dlPercent');
+
+            document.getElementById('dlTitle').innerText = "Abriendo " + pdf.title;
+            document.getElementById('dlSubtitle').innerText = pdf.track + " - Programa Oficial";
+            actionBtn.href = pdf.link !== "#" ? pdf.link : "https://www.desafiohipico.com/retrospectos";
+            actionBtn.classList.add('hidden');
+            bar.style.width = '0%';
+            percent.innerText = '0%';
+            modal.classList.remove('hidden');
+
+            let p = 0;
+            if (downloadInterval) clearInterval(downloadInterval);
+            downloadInterval = setInterval(() => {
+                p += 20;
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(downloadInterval);
+                    actionBtn.classList.remove('hidden');
+                }
+                bar.style.width = p + '%';
+                percent.innerText = p + '%';
+            }, 100);
+        }
+
+        function closeDlModal() {
+            if (downloadInterval) clearInterval(downloadInterval);
+            document.getElementById('modalDownload').classList.add('hidden');
+        }
+
+        function postChatMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const val = input.value.trim();
+            if (!val) return;
+            const chat = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = "flex items-start space-x-2";
+            div.innerHTML = `<span class="bg-red-950 text-red-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-red-500/20">TÚ</span> <strong class="text-amber-400">Espectador:</strong> <span class="text-slate-200">${val}</span>`;
+            chat.appendChild(div);
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+        }
+    </script>
+</body>
+</html>
