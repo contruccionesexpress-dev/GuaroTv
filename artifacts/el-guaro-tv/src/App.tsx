@@ -431,6 +431,11 @@ export default function App() {
             ))}
           </div>
 
+        </section>
+
+        {/* DERECHA: HERRAMIENTAS / GACETAS */}
+        <section className="lg:col-span-4 flex flex-col space-y-6">
+
           {/* CHAT EN DIRECTO */}
           <div className="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border border-red-900/40 p-4 flex flex-col space-y-3 shadow-xl">
             <div className="flex items-center justify-between border-b border-red-950 pb-2">
@@ -441,11 +446,11 @@ export default function App() {
               <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">EN VIVO</span>
             </div>
 
-            <div ref={chatBoxRef} className="h-28 overflow-y-auto space-y-2.5 text-xs pr-1">
+            <div ref={chatBoxRef} className="h-48 overflow-y-auto space-y-2.5 text-xs pr-1">
               {chatMessages.map(msg => (
                 <div key={msg.id} className="flex items-start space-x-2">
-                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${msg.badgeClass}`}>{msg.badge}</span>
-                  <strong className={msg.authorClass}>{msg.author}</strong>
+                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shrink-0 ${msg.badgeClass}`}>{msg.badge}</span>
+                  <strong className={`shrink-0 ${msg.authorClass}`}>{msg.author}</strong>
                   <span className={msg.textClass}>{msg.text}</span>
                 </div>
               ))}
@@ -467,12 +472,9 @@ export default function App() {
               </button>
             </form>
           </div>
-        </section>
 
-        {/* DERECHA: HERRAMIENTAS / GACETAS */}
-        <section className="lg:col-span-4 flex flex-col space-y-6">
-
-          {/* PANEL COMPARTIR */}
+          {/* PANEL COMPARTIR — solo visible en Admin */}
+          {role === "admin" && (
           <div className="bg-gradient-to-b from-neutral-900 to-black rounded-2xl border border-amber-500/30 p-5 shadow-2xl space-y-4">
             <div className="border-b border-red-950 pb-2.5 flex items-center space-x-2">
               <div className="bg-amber-500/10 text-amber-400 p-2 rounded-lg border border-amber-500/20 text-lg">
@@ -502,6 +504,7 @@ export default function App() {
               ✨ <strong>Acceso blindado:</strong> Al pulsar este link, se activa de forma automática el bloqueo del panel de control. Tus clientes solo verán el reproductor y el chat.
             </p>
           </div>
+          )}
 
           {/* PANEL ADMIN */}
           {role === "admin" && (
