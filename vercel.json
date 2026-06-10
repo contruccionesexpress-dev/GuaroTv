@@ -1,7 +1,5 @@
 {
-  "installCommand": "cd artifacts/el-guaro-tv && npm install",
-  "buildCommand": "cd artifacts/el-guaro-tv && npm run build",
-  "outputDirectory": "artifacts/el-guaro-tv/dist/public",
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
